@@ -1,0 +1,18 @@
+# Core APK analysis
+androguard>=3.4.0
+
+# XML parsing
+lxml>=4.9.0
+
+# Report generation
+jinja2>=3.1.0
+
+# PDF generation (choose one)
+# weasyprint>=60.0
+reportlab>=4.0.0
+
+# Terminal output
+colorama>=0.4.6
+
+# CLI
+# click>=8.1.0  # Optional: for more advanced CLI
