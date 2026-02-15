@@ -70,7 +70,5 @@ Then open your browser at [http://localhost:5000](http://localhost:5000).
 - `APKScanner/apk_scanner.py`: Main CLI tool.
 - `APKScanner/core/`: Scanning modules (Manifest, Network, Secrets, Crypto, Logging).
 - `web/`: Flask web application.
-- `reports/`: Default output directory for reports.
-- `testing_apps/`: Sample APKs for testing.
 
 
