@@ -4,97 +4,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APKSecurity - Upload APK</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        input[type="file"] {
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            background-color: #3498db;
-            color: #fff;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #27ae60;
-        }
-
-        .flash-messages {
-            color: #e74c3c;
-            margin-bottom: 1rem;
-        }
-    </style>
+    <title>APK Armor - Attack on Anomalies</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="container">
-        <div class="logo">📱</div>
-        <h1>APKSecurity Web</h1>
+    <header>
+        <div class="logo">APK ARMOR <i class="fas fa-shield-alt"></i></div>
+        <a href="https://github.com/Lav-Khator/Mobile-APK-Security-Analyzer" target="_blank" class="cyber-btn">
+            <i class="fab fa-github"></i> GitHub
+        </a>
+    </header>
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for message in messages %}
-            <p>{{ message }}</p>
-            {% endfor %}
+    <main>
+        <div class="glass-card upload-container">
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <p class="error-msg"><i class="fas fa-exclamation-triangle"></i> {{ message }}</p>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <form id="upload-form" action="/" method="post" enctype="multipart/form-data">
+                <div class="drop-zone" id="drop-zone">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h2>Drag & Drop APK File</h2>
+                    <p>or click to browse</p>
+                    <input type="file" name="file" id="apk-file" hidden accept=".apk">
+                </div>
+
+                <div class="progress-wrapper">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <div class="status-text">INITIALIZING...</div>
+                </div>
+            </form>
         </div>
-        {% endif %}
-        {% endwith %}
+    </main>
 
-        <form method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".apk" required>
-            <button type="submit">Upload & Scan</button>
-        </form>
-        <p style="margin-top: 1rem; font-size: 0.9rem; color: #7f8c8d;">
-            Upload an APK file to generate a PDF security report.
-        </p>
-    </div>
+    <footer>
+        <p>&copy; 2026 APK Armor - Attack on Anomaly | Secure Static Analysis</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 
 </html>

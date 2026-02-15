@@ -4,83 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APKScanner - Scan Complete</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        h1 {
-            color: #27ae60;
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            margin-bottom: 2rem;
-            color: #7f8c8d;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: #fff;
-            padding: 1rem 2rem;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            margin-bottom: 1rem;
-        }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .btn-secondary:hover {
-            background-color: #7f8c8d;
-        }
-
-        .icon {
-            font-size: 4rem;
-            color: #27ae60;
-            margin-bottom: 1rem;
-        }
-    </style>
+    <title>APK Armor - Attack on Anomalies</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="container">
-        <div class="icon">✅</div>
-        <h1>Scan Complete!</h1>
-        <p>The security analysis for <strong>{{ filename }}</strong> is ready.</p>
+    <header>
+        <div class="logo">APK ARMOR <i class="fas fa-shield-alt"></i></div>
+        <div>
+            <a href="{{ url_for('index') }}" class="cyber-btn" style="margin-right: 1rem;">
+                <i class="fas fa-redo"></i> New Scan
+            </a>
+            <a href="{{ url_for('download_file', filename=filename) }}" class="cyber-btn">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+        </div>
+    </header>
 
-        <a href="{{ url_for('download_file', filename=filename) }}" class="btn">Download PDF Report</a>
-        <br>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Scan Another APK</a>
-    </div>
+    <main>
+        <div class="dashboard">
+            <!-- Executive Summary -->
+            <div class="glass-card">
+                <h2><i class="fas fa-search"></i> Security Overview: {{ data.apk_name }}</h2>
+                <div class="summary-grid">
+                    <div class="stat-card">
+                        <h3>Vulnerabilities</h3>
+                        <div class="stat-value">{{ data.vulnerabilities|length }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Critical Secrets</h3>
+                        <div class="stat-value">{{ data.hardcoded_secrets|length }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Dangerous Perms</h3>
+                        <div class="stat-value">{{ data.dangerous_permission|length }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Network Risks</h3>
+                        <div class="stat-value">{{ data.insecure_requests|length }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Findings -->
+            <div class="glass-card">
+                <h2><i class="fas fa-bug"></i> Detected Vulnerabilities</h2>
+                <div class="vuln-list">
+                    {% if data.vulnerabilities %}
+                    {% for vuln in data.vulnerabilities %}
+                    <div class="finding-item severity-{{ vuln.severity|lower }}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--primary-color);">{{ vuln.id }}</strong>
+                            <span class="badge badge-{{ vuln.severity|lower }}">{{ vuln.severity }}</span>
+                        </div>
+                        <p style="margin: 0.5rem 0; color: #ccc;">{{ vuln.description }}</p>
+                        {% if vuln.path %}
+                        <small style="color: #7f8c8d; display: block; overflow-wrap: break-word;">
+                            <i class="fas fa-code"></i> {{ vuln.path }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="finding-item severity-low">
+                        <strong style="color: #2ed573;">Clean Scan!</strong>
+                        <p>No major vulnerabilities detected based on current ruleset.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 APK Armor - Attack on Anomaly | Secure Static Analysis</p>
+    </footer>
 </body>
 
 </html>

@@ -34,6 +34,10 @@ os.makedirs(REPORT_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+# Global storage for scan results (In-memory for simplicity)
+SCAN_RESULTS = {}
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -44,8 +48,6 @@ def index():
         
         file = request.files['file']
         
-        # If user does not select file, browser also
-        # submit an empty part without filename
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
@@ -57,8 +59,6 @@ def index():
             
             # Start Analysis
             try:
-                flash(f'Analyzing {filename}... This may take a minute.', 'info')
-                
                 # Initialize Analyzer
                 analyzer = APKAnalyzer(filepath)
                 if not analyzer.load_apk():
@@ -92,11 +92,9 @@ def index():
                 }
                 
                 # 2. Secrets
-                # Path to false positives config
                 fp_path = os.path.join(project_root, 'APKScanner', 'config', 'known_false_positives.txt')
                 secret_detector = SecretDetector(fp_path)
-                secrets = secret_detector.scan_apk(analyzer) # Iterate whole APK
-                # Note: scan_apk() prints to stdout, we just need return value
+                secrets = secret_detector.scan_apk(analyzer)
                 results['hardcoded_secrets'] = secrets
                 
                 # 3. Network
@@ -138,7 +136,6 @@ def index():
                     mapped['severity'] = issue['severity']
                     vulns.append(mapped)
                 # Map Exported Components
-                # Map Exported Components
                 for comp_type in ['activities', 'services', 'receivers', 'providers']:
                     exported = results['manifest_analysis'][comp_type]['exported']
                     key_map = {'activities': 'exported_activity', 'services': 'exported_service', 
@@ -154,12 +151,12 @@ def index():
                 results['vulnerabilities'] = vulns
                 
                 # 5. Generate Report
-                # Output to web/reports (ReportGenerator appends 'reports')
                 report_gen = ReportGenerator(filename, current_dir)
                 pdf_path = report_gen.generate_pdf_report(results)
                 
-                # Get just the filename of the report
+                # Store results globally
                 report_filename = os.path.basename(pdf_path)
+                SCAN_RESULTS[report_filename] = results
                 
                 return redirect(url_for('result', filename=report_filename))
                 
@@ -173,7 +170,12 @@ def index():
 
 @app.route('/result/<filename>')
 def result(filename):
-    return render_template('result.html', filename=filename)
+    data = SCAN_RESULTS.get(filename)
+    if not data:
+        # Fallback if accessed directly or restarted
+        flash('Result data not found. Please scan again.', 'error')
+        return redirect(url_for('index'))
+    return render_template('result.html', filename=filename, data=data)
 
 @app.route('/download/<filename>')
 def download_file(filename):

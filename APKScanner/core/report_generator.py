@@ -86,25 +86,71 @@ class ReportGenerator:
         
         pdf_path = os.path.join(reports_dir, f"report_{clean_name}.pdf")
         
-        doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+        doc = SimpleDocTemplate(
+            pdf_path,
+            pagesize=letter,
+            rightMargin=72, leftMargin=72,
+            topMargin=72, bottomMargin=18
+        )
+        
         styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='Justify', alignment=1))
+        
+        # Professional Heading Style
+        title_style = ParagraphStyle(
+            name='ReportTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            leading=30,
+            alignment=1, # Center
+            spaceAfter=30,
+            textColor=colors.darkblue
+        )
+        
+        h1_style = ParagraphStyle(
+            name='SectionHeader',
+            parent=styles['Heading2'],
+            fontSize=16,
+            leading=20,
+            spaceBefore=20,
+            spaceAfter=10,
+            textColor=colors.black,
+            borderPadding=(0, 0, 5, 0), # Add underline effect manually if needed, or just color
+            borderWidth=0
+        )
+        
+        normal_style = styles['Normal']
+        normal_style.fontSize = 11
+        normal_style.leading = 14
+        
+        code_style = ParagraphStyle(
+            name='Code',
+            parent=styles['Code'],
+            fontSize=10,
+            leading=12,
+            textColor=colors.darkblue,
+            backColor=colors.white
+        )
+
+        val_style = ParagraphStyle(
+             name='Value',
+             parent=normal_style,
+             textColor=colors.darkred
+        )
+
         story = []
         
-        # Title
-        title_style = styles['Title']
-        story.append(Paragraph(f"APK Security Scan Report: {self.apk_name}", title_style))
+        # Title Page
+        story.append(Paragraph(f"APK Security Report", title_style))
+        story.append(Paragraph(f"{self.apk_name}", styles['Heading2']))
         story.append(Spacer(1, 12))
+        story.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", normal_style))
+        story.append(Paragraph(f"<b>Package:</b> {results.get('package_name', 'N/A')}", normal_style))
+        story.append(Paragraph("<b>Tool:</b> APK Armor - Attack on Anomalies", normal_style))
+        story.append(Spacer(1, 24))
         
-        # Metadata
-        normal_style = styles['Normal']
-        story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", normal_style))
-        story.append(Paragraph(f"Package Name: {results.get('package_name', 'N/A')}", normal_style))
-        story.append(Spacer(1, 12))
-        
-        # Vulnerabilities
-        h2_style = styles['Heading2']
-        story.append(Paragraph("Security Vulnerabilities (OWASP Mobile Top 10)", h2_style))
-        story.append(Spacer(1, 6))
+        # Executive Summary / Vulnerabilities
+        story.append(Paragraph("Security Vulnerabilities", h1_style))
         
         vulns = results.get('vulnerabilities', [])
         if vulns:
@@ -114,91 +160,131 @@ class ReportGenerator:
             
             for i, vuln in enumerate(vulns, 1):
                 severity = vuln.get('severity', 'Info').upper()
-                color = colors.red if severity in ['HIGH', 'CRITICAL'] else colors.orange if severity == 'MEDIUM' else colors.black
                 
-                s = f"<b>{i}. [{severity}] {vuln.get('owasp', 'Unknown')}</b><br/>"
-                s += f"Type: {vuln.get('category', 'General')}<br/>"
-                s += f"Description: {vuln.get('description', 'N/A')}<br/>"
-                s += f"Remediation: {vuln.get('remediation', 'N/A')}<br/>"
+                # Color coding for severity header
+                if severity in ['HIGH', 'CRITICAL']:
+                    sev_color = colors.red
+                elif severity == 'MEDIUM':
+                    sev_color = colors.orange
+                else:
+                    sev_color = colors.green
+                
+                # Finding Header
+                story.append(Paragraph(f"{i}. {vuln.get('owasp', 'Finding')}", 
+                                     ParagraphStyle('FindingTitle', parent=styles['Heading3'], fontSize=12, spaceAfter=2)))
+                
+                # Severity Badge (Text)
+                sev_text = f"<font color='{sev_color.hexval()}'><b>[{severity}]</b></font>"
+                story.append(Paragraph(sev_text, normal_style))
+                
+                # Details
+                story.append(Spacer(1, 4))
+                story.append(Paragraph(f"<b>Type:</b> {vuln.get('category', 'General')}", normal_style))
+                story.append(Spacer(1, 4))
+                story.append(Paragraph(f"<b>Description:</b> {vuln.get('description', 'N/A')}", normal_style))
+                story.append(Spacer(1, 4))
+                story.append(Paragraph(f"<b>Remediation:</b> {vuln.get('remediation', 'N/A')}", normal_style))
+                
                 if vuln.get('path'):
-                    s += f"Location: <i>{vuln.get('path')}</i><br/>"
+                     story.append(Spacer(1, 4))
+                     story.append(Paragraph(f"<b>Location:</b> {vuln.get('path')}", code_style))
                 
-                p = Paragraph(s, normal_style)
-                story.append(p)
-                story.append(Spacer(1, 6))
+                if vuln.get('value'):
+                    val = str(vuln.get('value'))
+                    # Wrap long text
+                    if len(val) > 80: val = val[:77] + "..."
+                    story.append(Spacer(1, 4))
+                    story.append(Paragraph(f"<b>Value:</b> {val}", code_style))
+
+                story.append(Spacer(1, 12))
+                # Divider
+                story.append(Paragraph("_" * 60, ParagraphStyle('Divider', parent=normal_style, alignment=1, textColor=colors.lightgrey)))
+                story.append(Spacer(1, 12))
         else:
             story.append(Paragraph("No major vulnerabilities found.", normal_style))
             
         story.append(Spacer(1, 12))
         
         # Permissions
-        story.append(Paragraph("Permissions", h2_style))
+        story.append(Paragraph("Permissions", h1_style))
         perms = results.get('permission', [])
+        dang_perms = results.get('dangerous_permission', [])
+        
         if perms:
             for perm in perms:
-                story.append(Paragraph(f"- {perm}", normal_style))
+                if perm in dang_perms:
+                     story.append(Paragraph(f"<font color='red'>• {perm} [DANGEROUS]</font>", normal_style))
+                else:
+                     story.append(Paragraph(f"• {perm}", normal_style))
         else:
-            story.append(Paragraph("No permissions found.", normal_style))
+            story.append(Paragraph("No permissions requested.", normal_style))
             
         story.append(Spacer(1, 12))
 
-        # Manifest Analysis
+        # Manifest Components Overview
+        story.append(Paragraph("Manifest Components", h1_style))
         manifest = results.get('manifest_analysis', {})
-        for component_type in ['activities', 'services', 'receivers', 'providers']:
-            story.append(Paragraph(component_type.capitalize(), h2_style))
-            components = manifest.get(component_type, {}).get('all', [])
-            exported = manifest.get(component_type, {}).get('exported', [])
+        
+        # create data for table
+        table_data = [['Component', 'Total', 'Exported']]
+        for c_type in ['activities', 'services', 'receivers', 'providers']:
+            total = len(manifest.get(c_type, {}).get('all', []))
+            exported = len(manifest.get(c_type, {}).get('exported', []))
+            table_data.append([c_type.capitalize(), str(total), str(exported)])
             
-            if components:
-                # Use a bullet list or just paragraphs
-                for comp in components:
-                    if comp in exported:
-                        p = Paragraph(f"- {comp} <font color='red'>[EXPORTED]</font>", normal_style)
-                    else:
-                        p = Paragraph(f"- {comp}", normal_style)
-                    story.append(p)
-            else:
-                story.append(Paragraph(f"No {component_type} found.", normal_style))
-            story.append(Spacer(1, 6))
+        t = Table(table_data, colWidths=[200, 100, 100])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        story.append(t)
+        
+        story.append(Spacer(1, 24))
+        
+        # Manifest Details (Exported only to save space, or all?)
+        # User wants "technical document". Let's list EXPORTED components specifically.
+        story.append(Paragraph("Exported Components (Attack Surface)", h1_style))
+        has_exported = False
+        for c_type in ['activities', 'services', 'receivers', 'providers']:
+            exported_list = manifest.get(c_type, {}).get('exported', [])
+            if exported_list:
+                has_exported = True
+                story.append(Paragraph(f"<b>{c_type.capitalize()}</b>", styles['Heading3']))
+                for comp in exported_list:
+                    story.append(Paragraph(f"• {comp}", code_style))
+                    story.append(Spacer(1, 4))
+                story.append(Spacer(1, 6))
+        
+        if not has_exported:
+             story.append(Paragraph("No exported components found.", normal_style))
 
-        story.append(Spacer(1, 6))
-
-        # Hardcoded Secrets
-        story.append(Paragraph("Hardcoded Secrets", h2_style))
+        # Secrets Section
+        story.append(Paragraph("Hardcoded Secrets", h1_style))
         secrets = results.get('hardcoded_secrets', [])
         if secrets:
-            for secret in secrets:
-                # Wrap long values
-                val = str(secret.get('ioc', ''))
-                if len(val) > 60: val = val[:57] + "..."
-                s = f"<b>Type:</b> {secret.get('type')}<br/>"
-                s += f"<b>Value:</b> {val}<br/>"
-                if secret.get('path'):
-                    s += f"<b>Path:</b> {secret.get('path')}<br/>"
-                
-                story.append(Paragraph(s, normal_style))
-                story.append(Spacer(1, 6))
+            for s in secrets:
+                 story.append(Paragraph(f"• <b>{s['type']}</b> found in <i>{s.get('path', 'unknown')}</i>", normal_style))
+                 story.append(Paragraph(f"  Value: {s.get('ioc', '')}", code_style))
+                 story.append(Spacer(1, 4))
         else:
-            story.append(Paragraph("No hardcoded secrets found.", normal_style))
-            
-        story.append(Spacer(1, 12))
+            story.append(Paragraph("No secrets found.", normal_style))
 
-        # Insecure Network
-        story.append(Paragraph("Insecure Network Connections", h2_style))
+        # Network Section
+        story.append(Paragraph("Network Security", h1_style))
         insecure = results.get('insecure_requests', [])
         if insecure:
             for url in insecure:
-                # Split by comma if present (fix for merged DEX strings)
-                if ',' in url:
-                    sub_urls = url.split(',')
-                    for sub in sub_urls:
-                        if sub.strip():
-                            story.append(Paragraph(f"- {sub.strip()}", normal_style))
-                else:
-                    # Wrap long URLs
-                    story.append(Paragraph(f"- {url}", normal_style))
+                story.append(Paragraph(f"• Insecure URL: {url}", code_style))
         else:
-            story.append(Paragraph("No insecure connections found.", normal_style))
+            story.append(Paragraph("No insecure URLs found.", normal_style))
+
+        story.append(Spacer(1, 24))
+        story.append(Paragraph("End of Report", ParagraphStyle('End', parent=normal_style, alignment=1, textColor=colors.grey)))
             
         doc.build(story)
         print(f"{Fore.CYAN}[+] Generated PDF report - {pdf_path}")
