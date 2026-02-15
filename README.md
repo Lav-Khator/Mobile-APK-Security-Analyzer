@@ -2,6 +2,8 @@
 
 A robust and efficient APK security scanner built entirely in Python. It is a static analysis security tool that evaluates Android APK files and reports structured security findings.
 
+Note: Testing large apk files on deployed website may not be possible due to Render's limitation, in that case, using localhost is preferable.
+
 ## Key Features
 
 - **No Java Required**: Uses `androguard` for pure Python APK analysis.
