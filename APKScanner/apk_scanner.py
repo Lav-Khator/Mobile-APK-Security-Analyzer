@@ -24,23 +24,8 @@ init(autoreset=True)
     Version:    1.0.0
 """
 
-def print_logo():
-    """Print APKScanner logo"""
-    logo = f"""{Fore.GREEN}
- █████  ██████  ██   ██ ███████  ██████  █████  ███    ██ ███    ██ ███████ ██████  
-██   ██ ██   ██ ██  ██  ██      ██      ██   ██ ████   ██ ████   ██ ██      ██   ██ 
-███████ ██████  █████   ███████ ██      ███████ ██ ██  ██ ██ ██  ██ █████   ██████  
-██   ██ ██      ██  ██       ██ ██      ██   ██ ██  ██ ██ ██  ██ ██ ██      ██   ██ 
-██   ██ ██      ██   ██ ███████  ██████ ██   ██ ██   ████ ██   ████ ███████ ██   ██ 
-{Style.RESET_ALL}
-{Fore.CYAN}        APKSecurity - Python-Native Android Security Scanner{Style.RESET_ALL}
-{Fore.CYAN}        Powered by Androguard{Style.RESET_ALL}
-    """
-    print(logo)
-
 def parse_args():
     """Parse command-line arguments"""
-    print_logo()
     
     parser = argparse.ArgumentParser(
         description=f"{Fore.CYAN}APKSecurity: Python-native Android security scanner{Style.RESET_ALL}",

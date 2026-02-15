@@ -8,7 +8,7 @@ init(autoreset=True)
 
 class APKAnalyzer:
     """
-    Main APK analysis class using androguard instead of JADX
+    Main APK analysis class using androguard
     """
 
     def __init__(self, apk_path):
