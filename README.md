@@ -42,6 +42,7 @@ A robust and efficient APK security scanner built entirely in Python. It is a st
 Run the scanner on an APK file:
 
 ```bash
+# Add the path for the APK file wherever necessary
 # Basic scan (JSON report by default)
 python APKScanner/apk_scanner.py -apk path/to/app.apk
 
