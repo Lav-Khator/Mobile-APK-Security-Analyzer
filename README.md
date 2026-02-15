@@ -1,4 +1,4 @@
-# APKScanner (Python-Native)
+# APK Armor - Attack on Anomalies (Python-Native)
 
 A robust and efficient APK security scanner built entirely in Python. It is a static analysis security tool that evaluates Android APK files and reports structured security findings.
 
@@ -19,8 +19,8 @@ A robust and efficient APK security scanner built entirely in Python. It is a st
 
 1. **Clone the repository**:
    ```bash
-   git clone <repo_url>
-   cd APKSecurity
+   git clone https://github.com/Lav-Khator/Mobile-APK-Security-Analyzer
+   cd Mobile-APK-Security-Analyzer
    ```
 
 2. **Create a Virtual Environment**:
@@ -70,5 +70,4 @@ Then open your browser at [http://localhost:5000](http://localhost:5000).
 - `APKScanner/apk_scanner.py`: Main CLI tool.
 - `APKScanner/core/`: Scanning modules (Manifest, Network, Secrets, Crypto, Logging).
 - `web/`: Flask web application.
-
 
